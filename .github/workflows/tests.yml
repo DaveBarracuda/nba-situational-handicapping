@@ -1,0 +1,45 @@
+# Tests y lint en cada push y cada pull request.
+#
+# La suite corre entera sin red: la liga sintética es determinista y los
+# ingestores se prueban con payloads guardados. Por eso no hace falta ningún
+# secret aquí.
+#
+# ruff y pytest van en pasos separados a propósito: encadenarlos con `&&` ya
+# escondió una vez un fallo de lint que se comió el append de un test.
+
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+
+      - name: Lint
+        run: python -m ruff check nba_sh tests
+
+      - name: Tests con cobertura
+        run: python -m pytest -q --cov=nba_sh --cov-report=term
+
+      - name: Humo del pipeline completo (liga sintética, sin red)
+        run: python -m nba_sh demo --seasons 1

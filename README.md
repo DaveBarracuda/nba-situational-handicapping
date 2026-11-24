@@ -856,6 +856,51 @@ Con las 4 temporadas esa validación mantiene **solo** `lookahead` (+0.84 pts,
 que el efecto de `lookahead` bajó de +1.10 con tres temporadas a +0.84 con
 cuatro: incluso el que sobrevive se encoge en cuanto hay más data.
 
+## 6b. Automatización en GitHub Actions
+
+El ciclo de paper-trading corre solo, en la nube, sin depender de que ninguna
+app esté abierta. Dos workflows:
+
+| Workflow | Cuándo | Qué hace | Necesita secret |
+|---|---|---|---|
+| `tests.yml` | push y PR | ruff, pytest con cobertura y humo del pipeline sintético | no |
+| `paper-trading.yml` | cron ×3 al día | apertura → apuestas → cierre → cuadre | solo los dos primeros |
+
+Los tres momentos, en UTC: **16:00** captura la apertura y registra las
+apuestas, **23:30** captura el cierre, **14:00** del día siguiente liquida,
+calcula la CLV y actualiza el record. El libro se commitea de vuelta al repo,
+así que el historial de la medición queda público y auditable.
+
+**El paso de cuadre no necesita la clave**, y eso es deliberado: si la captura
+de cierre falla, reconstruye la línea del pickcenter de ESPN. La medición no
+puede perderse por una clave ausente — que es exactamente lo que pasó la
+primera noche con una tarea programada local.
+
+### El secret
+
+Uno solo, en *Settings → Secrets and variables → Actions*:
+
+| Secret | Para qué |
+|---|---|
+| `ODDS_API_KEY` | Clave de [The Odds API](https://the-odds-api.com). Sin ella el paso de apertura falla con un error claro y el de cierre avisa sin romperse. |
+
+La clave se lee únicamente de la variable de entorno; no se escribe en disco ni
+en los logs, y el workflow solo comprueba si está vacía, nunca la imprime.
+
+Para correr un paso a mano: *Actions → paper-trading → Run workflow*, eligiendo
+`open`, `close` o `reconcile`.
+
+### Lo que no está en el repo
+
+- **Los volcados de hoopR** (109 MB de box scores y play-by-play de ESPN): no
+  son fuente de este proyecto y se redescargan solos. El workflow los cachea.
+- **El snapshot limpio sí está** (1 MB), así que el modelo entrena sin esperar
+  ninguna descarga.
+- **Las asignaciones arbitrales también** (52 KB): reconstruirlas cuesta ~50
+  minutos de peticiones a ESPN.
+- **La guía** de la que sale todo esto: no me consta su autoría, así que no la
+  publico. Las referencias a secciones del README apuntan a ella.
+
 ## 7. Data real
 
 ```python

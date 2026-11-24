@@ -1,0 +1,145 @@
+# Ciclo diario de paper-trading con medición de CLV.
+#
+# NO SE ENVÍA NINGUNA APUESTA A NINGÚN SITIO. Todo lo que hace es escribir
+# ficheros en `data/paper/` y commitearlos de vuelta al repo.
+#
+# Sustituye a las tareas programadas locales, que dependían de tener la app
+# abierta y de que la clave estuviera en su entorno: aquí corre en la nube a su
+# hora y la clave viene del secret del repo.
+#
+# Los tres momentos de la guía (§14.1), en UTC:
+#   16:00  apertura: captura la línea de apertura y registra las apuestas
+#   23:30  cierre: captura la línea de cierre (T-30 del primer tipoff típico)
+#   14:00  cuadre del día siguiente: liquida, calcula CLV y saca el record
+#
+# El cuadre NO necesita la clave: si el cierre no se capturó, lo reconstruye
+# del pickcenter de ESPN. Así la medición no se pierde por una clave ausente,
+# que es justo lo que pasó con las tareas locales.
+
+name: paper-trading
+
+on:
+  schedule:
+    - cron: "0 16 * * *"
+    - cron: "30 23 * * *"
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "Paso a correr"
+        required: true
+        type: choice
+        options: [open, close, reconcile]
+        default: reconcile
+      season:
+        description: "Temporada (p.ej. 2026-27)"
+        required: false
+        default: "2026-27"
+
+permissions:
+  contents: write
+
+concurrency:
+  # Dos pasos a la vez escribirían el libro en paralelo y el push de uno
+  # pisaría al otro. Se encolan.
+  group: paper-trading-ledger
+  cancel-in-progress: false
+
+env:
+  SEASON: ${{ github.event.inputs.season || '2026-27' }}
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+
+      - name: Decidir el paso
+        id: step
+        run: |
+          case "${{ github.event.schedule }}" in
+            "0 16 * * *")  echo "name=open"      >> "$GITHUB_OUTPUT" ;;
+            "30 23 * * *") echo "name=close"     >> "$GITHUB_OUTPUT" ;;
+            "0 14 * * *")  echo "name=reconcile" >> "$GITHUB_OUTPUT" ;;
+            *) echo "name=${{ github.event.inputs.step || 'reconcile' }}" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      # Los volcados de hoopR (109 MB) no están en el repo: se cachean. El
+      # snapshot limpio sí está, así que el modelo entrena sin esperarlos.
+      - name: Caché de los volcados de hoopR
+        uses: actions/cache@v4
+        with:
+          path: data/raw/hoopr
+          key: hoopr-${{ env.SEASON }}-${{ github.run_id }}
+          restore-keys: hoopr-${{ env.SEASON }}-
+
+      - name: Apertura y apuestas de papel
+        if: steps.step.outputs.name == 'open'
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          if [ -z "$ODDS_API_KEY" ]; then
+            echo "::error::falta el secret ODDS_API_KEY; sin él no hay apertura que capturar"
+            exit 1
+          fi
+          python -m nba_sh paper capture --season "$SEASON" --timing open --book draftkings
+          python -m nba_sh paper bet --season "$SEASON" --sims 6000
+
+      - name: Cierre
+        if: steps.step.outputs.name == 'close'
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          if [ -z "$ODDS_API_KEY" ]; then
+            echo "::warning::falta ODDS_API_KEY; el cuadre de mañana reconstruirá el cierre de ESPN"
+            exit 0
+          fi
+          python -m nba_sh paper capture --season "$SEASON" --timing close --book draftkings
+
+      # Sin clave: solo ESPN. Es la red de seguridad de la medición.
+      - name: Cuadre, CLV y record
+        if: steps.step.outputs.name == 'reconcile'
+        run: |
+          python -m nba_sh paper reconstruct-close || \
+            echo "nada que reconstruir: el cierre ya estaba capturado"
+          python -m nba_sh paper settle --season "$SEASON" --resettle
+          python -m nba_sh paper record --save
+          python -m nba_sh paper report
+
+      - name: Resumen en el run
+        if: always()
+        run: |
+          {
+            echo "## Paso: ${{ steps.step.outputs.name }}"
+            echo '```'
+            python -m nba_sh paper record 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar el libro en el repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/paper data/artifacts
+          if git diff --cached --quiet; then
+            echo "el libro no cambió; nada que commitear"
+            exit 0
+          fi
+          git commit -m "chore(paper): ${{ steps.step.outputs.name }} del $(date -u +%F)"
+          # Otro run pudo empujar mientras este corría: rebase y reintento.
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            echo "reintento $attempt"
+            sleep 5
+          done
+          exit 1
