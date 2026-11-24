@@ -1,0 +1,4 @@
+# Normaliza los finales de línea: el repo guarda LF y cada quien ve lo suyo.
+* text=auto eol=lf
+*.parquet binary
+*.csv text eol=lf

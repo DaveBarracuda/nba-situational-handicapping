@@ -1,0 +1,116 @@
+{
+  "record": {
+    "n_bets": 5,
+    "wins": 5,
+    "losses": 0,
+    "pushes": 0,
+    "pending": 0,
+    "staked": 600.0,
+    "pnl": 602.9006269225747,
+    "roi": 1.0048343782042912,
+    "hit_rate": 1.0,
+    "p_value_coin": 0.03125,
+    "mean_clv": 0.02658120684365254,
+    "mean_clv_points": 0.4,
+    "n_with_clv": 5,
+    "by_market": {
+      "ml": {
+        "n": 1,
+        "wins": 1,
+        "losses": 0,
+        "pnl": 161.48239999999998,
+        "roi": 1.42
+      },
+      "spread": {
+        "n": 4,
+        "wins": 4,
+        "losses": 0,
+        "pnl": 441.4182269225748,
+        "roi": 0.9077449759862113
+      }
+    },
+    "verdict": "5-0 (100.0%), ROI +100.5%. Con 5 apuestas decididas esto no es evidencia de nada: un récord así o mejor sale por azar el 3.1% de las veces. Mira la CLV."
+  },
+  "historial": [
+    {
+      "game_date": "2026-11-23 00:00:00",
+      "home_team": "CHA",
+      "away_team": "MEM",
+      "market": "spread",
+      "side": "away",
+      "line": -3.5,
+      "american": -111.0,
+      "stake": 125.21,
+      "result": "win",
+      "pnl": 112.80180180180182,
+      "clv": -0.023533207386800703,
+      "clv_points": -1.0,
+      "closing_line": -2.5,
+      "running_pnl": 112.80180180180182
+    },
+    {
+      "game_date": "2026-11-23 00:00:00",
+      "home_team": "PHI",
+      "away_team": "POR",
+      "market": "ml",
+      "side": "away",
+      "line": 142.0,
+      "american": 142.0,
+      "stake": 113.72,
+      "result": "win",
+      "pnl": 161.48239999999998,
+      "clv": 0.10542804153463065,
+      "clv_points": 0.0,
+      "closing_line": NaN,
+      "running_pnl": 274.2842018018018
+    },
+    {
+      "game_date": "2026-11-23 00:00:00",
+      "home_team": "PHI",
+      "away_team": "POR",
+      "market": "spread",
+      "side": "away",
+      "line": 3.5,
+      "american": -108.0,
+      "stake": 105.74,
+      "result": "win",
+      "pnl": 97.90740740740742,
+      "clv": 0.14536798717041427,
+      "clv_points": 5.0,
+      "closing_line": -1.5,
+      "running_pnl": 372.1916092092092
+    },
+    {
+      "game_date": "2026-11-23 00:00:00",
+      "home_team": "CHI",
+      "away_team": "CLE",
+      "market": "spread",
+      "side": "home",
+      "line": 8.5,
+      "american": -108.0,
+      "stake": 154.06,
+      "result": "win",
+      "pnl": 142.64814814814818,
+      "clv": -0.00650448211638005,
+      "clv_points": 0.0,
+      "closing_line": 8.5,
+      "running_pnl": 514.8397573573574
+    },
+    {
+      "game_date": "2026-11-23 00:00:00",
+      "home_team": "SAC",
+      "away_team": "SAS",
+      "market": "spread",
+      "side": "away",
+      "line": -10.5,
+      "american": -115.0,
+      "stake": 101.27,
+      "result": "win",
+      "pnl": 88.06086956521737,
+      "clv": -0.08785230498360147,
+      "clv_points": -2.0,
+      "closing_line": -8.5,
+      "running_pnl": 602.9006269225747
+    }
+  ]
+}

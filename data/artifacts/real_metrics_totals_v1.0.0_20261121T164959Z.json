@@ -1,0 +1,28 @@
+{
+  "datos": {
+    "juegos": 3692,
+    "posesiones": "exactas (box score)",
+    "ausencias": 13514,
+    "perfil_de_tiro": "si (efg, 3PA rate, FT rate, pintura, faltas)",
+    "arbitros": "descargando"
+  },
+  "walk_forward_2024_25": {
+    "log_loss": 0.5986642450538859,
+    "brier": 0.20644470906508527,
+    "ece": 0.0380114418689506,
+    "mae_margin": 10.894067830928467,
+    "mae_total": 14.670243469722026
+  },
+  "split_unico_2024_25": {
+    "log_loss": 0.597123346436949,
+    "brier": 0.20584214729056494,
+    "ece": 0.03837931284674986,
+    "mae_margin": 10.891003557605828,
+    "mae_total": 14.686496992175126
+  },
+  "totales": {
+    "sd_predicho": 6.824667568780692,
+    "corr_con_real": 0.3901613882023522,
+    "mae_baseline_ciego": 15.83691418789493
+  }
+}

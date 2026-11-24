@@ -1,0 +1,197 @@
+{
+  "model_version": "v1.0.0",
+  "starting_bankroll": 10000.0,
+  "final_bankroll": 24698.095911756467,
+  "n_bets": 1088,
+  "n_opportunities": 12336,
+  "betting": {
+    "n_bets": 1088.0,
+    "total_stake": 299412.51,
+    "total_pnl": 14698.095911756462,
+    "roi": 0.04908978556626262,
+    "roi_ci_low": -0.019458373935149473,
+    "roi_ci_high": 0.1176379450676747,
+    "roi_significant": 0.0,
+    "max_drawdown_pct": 34.74452827542252,
+    "drawdown_ok": 0.0,
+    "enough_bets_for_conclusions": 1.0,
+    "mean_clv": 0.05654400734845197,
+    "median_clv": 0.0567984968164682,
+    "beat_close_rate": 0.7095588235294118,
+    "win_rate": 0.5009259259259259
+  },
+  "market": {
+    "n_games": 2056.0,
+    "log_loss": 0.596902053555506,
+    "brier": 0.20539957510078133,
+    "ece": 0.022116484452969168,
+    "mae_margin": 9.445754708347742,
+    "mae_total": 12.693053571357671,
+    "log_loss_ok": 1.0,
+    "brier_ok": 1.0,
+    "ece_ok": 0.0,
+    "mae_margin_ok": 1.0,
+    "mae_total_ok": 1.0
+  },
+  "sensitivity": {
+    "roi_after_haircut": 0.04908978556626262,
+    "n_bets_after_haircut": 1088.0,
+    "pnl_after_haircut": 14698.095911756462
+  },
+  "by_market": [
+    {
+      "group": "market",
+      "value": "ml",
+      "n_bets": 321,
+      "stake": 83656.95999999999,
+      "pnl": 7230.9722753928145,
+      "roi": 0.08643599140337893,
+      "mean_clv": 0.050979390550390795
+    },
+    {
+      "group": "market",
+      "value": "spread",
+      "n_bets": 211,
+      "stake": 47316.04000000001,
+      "pnl": -1029.1890909090894,
+      "roi": -0.021751378410135108,
+      "mean_clv": 0.07419073092716028
+    },
+    {
+      "group": "market",
+      "value": "total",
+      "n_bets": 556,
+      "stake": 168439.50999999998,
+      "pnl": 8496.312727272736,
+      "roi": 0.050441328921419545,
+      "mean_clv": 0.053059804681312016
+    },
+    {
+      "group": "side",
+      "value": "away",
+      "n_bets": 320,
+      "stake": 79409.97,
+      "pnl": 4987.334587372398,
+      "roi": 0.06280489197228507,
+      "mean_clv": 0.05202292757112016
+    },
+    {
+      "group": "side",
+      "value": "home",
+      "n_bets": 212,
+      "stake": 51563.02999999999,
+      "pnl": 1214.448597111329,
+      "roi": 0.023552700396220493,
+      "mean_clv": 0.07250609325258403
+    },
+    {
+      "group": "side",
+      "value": "over",
+      "n_bets": 230,
+      "stake": 71784.63,
+      "pnl": 7318.930909090911,
+      "roi": 0.10195679644919686,
+      "mean_clv": 0.053217674686652075
+    },
+    {
+      "group": "side",
+      "value": "under",
+      "n_bets": 326,
+      "stake": 96654.87999999999,
+      "pnl": 1177.3818181818224,
+      "roi": 0.012181297190393516,
+      "mean_clv": 0.05294842400269785
+    },
+    {
+      "group": "confidence",
+      "value": "high",
+      "n_bets": 882,
+      "stake": 263863.06,
+      "pnl": 11157.22925675604,
+      "roi": 0.04228416534226519,
+      "mean_clv": 0.05789990298794635
+    },
+    {
+      "group": "confidence",
+      "value": "low",
+      "n_bets": 93,
+      "stake": 7807.870000000001,
+      "pnl": 2047.3610454545453,
+      "roi": 0.26221761446521846,
+      "mean_clv": 0.04663970641251531
+    },
+    {
+      "group": "confidence",
+      "value": "medium",
+      "n_bets": 113,
+      "stake": 27741.58,
+      "pnl": 1493.5056095458754,
+      "roi": 0.05383635717741654,
+      "mean_clv": 0.05411214923347909
+    },
+    {
+      "group": "timing",
+      "value": "t_minus_60",
+      "n_bets": 1088,
+      "stake": 299412.51,
+      "pnl": 14698.095911756462,
+      "roi": 0.04908978556626262,
+      "mean_clv": 0.05654400734845197
+    },
+    {
+      "group": "line_move_confirms",
+      "value": false,
+      "n_bets": 781,
+      "stake": 216845.98,
+      "pnl": 27593.478488889472,
+      "roi": 0.1272492046607895,
+      "mean_clv": 0.07406916992711862
+    },
+    {
+      "group": "line_move_confirms",
+      "value": true,
+      "n_bets": 307,
+      "stake": 82566.53,
+      "pnl": -12895.38257713301,
+      "roi": -0.15618171887728613,
+      "mean_clv": 0.011960450430085002
+    }
+  ],
+  "spot_validation": [
+    {
+      "spot": "lookahead",
+      "effect_points": -0.7815065667622445,
+      "n_games": 498,
+      "keep": true,
+      "reason": ""
+    },
+    {
+      "spot": "letdown",
+      "effect_points": -1.7166216791664102,
+      "n_games": 8,
+      "keep": false,
+      "reason": "muestra insuficiente (8 < 200)"
+    },
+    {
+      "spot": "sandwich",
+      "effect_points": -1.115830721278099,
+      "n_games": 275,
+      "keep": true,
+      "reason": ""
+    },
+    {
+      "spot": "revenge",
+      "effect_points": -0.336529171572226,
+      "n_games": 157,
+      "keep": false,
+      "reason": "muestra insuficiente (157 < 200)"
+    }
+  ],
+  "equity_points": 278,
+  "rejections": {
+    "edge por debajo del umbral": 7340,
+    "": 3872,
+    "cuota fuera del rango liquido": 1031,
+    "valor esperado negativo": 93
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "fuente": "ESPN scoreboard API",
+  "temporadas": [
+    "2022-23",
+    "2023-24",
+    "2024-25"
+  ],
+  "juegos_totales": 3692,
+  "entrenamiento": {
+    "temporadas": [
+      "2022-23",
+      "2023-24"
+    ],
+    "juegos": 2461
+  },
+  "evaluacion": {
+    "temporada": "2024-25",
+    "juegos": 1231
+  },
+  "modelo": {
+    "log_loss": 0.6064303641845207,
+    "brier": 0.2099381459939903,
+    "ece": 0.03310496665301616,
+    "mae_margin": 10.915328002206918,
+    "mae_total": 15.046503907555632
+  },
+  "referencias": {
+    "elo_solo_log_loss": 0.6141998610983717,
+    "sin_situacional_log_loss": 0.6094253038822358,
+    "baseline_log_loss": 0.6893647615491657,
+    "baseline_mae_margin": 12.630041290491178,
+    "baseline_mae_total": 15.816562522065698
+  },
+  "contexto_real": {
+    "b2b_por_equipo_temporada": 14.144444444444444,
+    "sd_margen_real": 15.880712732043271,
+    "sd_total_real": 19.82373248644377,
+    "sin_cuotas": true,
+    "sin_lesiones": true,
+    "posesiones": "estimadas (ESPN no publica TOV/OREB)"
+  },
+  "elo_final_top5": {
+    "OKC": 1787,
+    "BOS": 1716,
+    "CLE": 1691,
+    "LAC": 1666,
+    "MIN": 1643
+  }
+}

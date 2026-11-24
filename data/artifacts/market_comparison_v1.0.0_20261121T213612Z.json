@@ -1,0 +1,73 @@
+{
+ "linea": "spread de cierre de ESPN (hoopR pbp)",
+ "cuota_asumida": -110.0,
+ "break_even": 0.5238095238095238,
+ "por_temporada": {
+  "2023-24": {
+   "n": 1231,
+   "mae_mercado": 10.528025995125914,
+   "mae_modelo": 11.076107413384058,
+   "corr_modelo_mercado": 0.8727790175995462,
+   "ats_edge_2": {
+    "n": 690,
+    "acierto": 0.4811594202898551,
+    "z_vs_break_even": -2.24319788669954,
+    "roi": -0.0814229249011858,
+    "pushes": 14
+   }
+  },
+  "2024-25": {
+   "n": 1231,
+   "mae_mercado": 10.52315190901706,
+   "mae_modelo": 10.865380984613607,
+   "corr_modelo_mercado": 0.8482501732565823,
+   "ats_edge_2": {
+    "n": 757,
+    "acierto": 0.5482166446499339,
+    "z_vs_break_even": 1.3445824651259546,
+    "roi": 0.04659541251351018,
+    "pushes": 15
+   }
+  }
+ },
+ "agregado": {
+  "edge_0": {
+   "n": 2425,
+   "acierto": 0.5171134020618556,
+   "z_vs_break_even": -0.6602405060076248,
+   "roi": -0.012783505154639274,
+   "pushes": 37
+  },
+  "edge_1": {
+   "n": 1926,
+   "acierto": 0.5202492211838006,
+   "z_vs_break_even": -0.3128513318173433,
+   "roi": -0.006796941376380761,
+   "pushes": 32
+  },
+  "edge_2": {
+   "n": 1447,
+   "acierto": 0.5162404975812025,
+   "z_vs_break_even": -0.5764972339505682,
+   "roi": -0.014449959163158888,
+   "pushes": 29
+  },
+  "edge_3": {
+   "n": 1052,
+   "acierto": 0.5161596958174905,
+   "z_vs_break_even": -0.4968010352035587,
+   "roi": -0.014604217075699866,
+   "pushes": 21
+  },
+  "edge_5": {
+   "n": 484,
+   "acierto": 0.512396694214876,
+   "z_vs_break_even": -0.5027348197840426,
+   "roi": -0.02178812922614587,
+   "pushes": 11
+  },
+  "mae_mercado": 10.525588952071487,
+  "mae_modelo": 10.970744198998835
+ },
+ "veredicto": "El modelo no bate el cierre: es menos preciso (MAE 10.97 vs 10.53) y su desacuerdo con la linea rinde 51.6% ATS, por debajo del 52.38% que exige -110. Las dos temporadas discrepan (48.1% y 54.8%): la buena era ruido."
+}

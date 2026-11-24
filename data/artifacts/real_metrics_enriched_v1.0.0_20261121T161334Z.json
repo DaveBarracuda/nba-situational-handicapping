@@ -1,0 +1,44 @@
+{
+  "fuente": {
+    "juegos": "ESPN scoreboard",
+    "box_scores": "hoopR-nba-data (ESPN)",
+    "temporadas": [
+      "2022-23",
+      "2023-24",
+      "2024-25"
+    ],
+    "juegos_totales": 3692,
+    "posesiones_exactas": 3692,
+    "ausencias_reconstruidas": 13514
+  },
+  "walk_forward_2024_25": {
+    "log_loss": 0.5985437133857273,
+    "brier": 0.20640137607716627,
+    "ece": 0.03648879021784761,
+    "mae_margin": 10.894067337373247,
+    "mae_total": 15.036540400864647
+  },
+  "split_unico_2024_25": {
+    "log_loss": 0.5972535423923261,
+    "brier": 0.20591935205632825,
+    "ece": 0.038246548627604904,
+    "mae_margin": 10.891004221560815,
+    "mae_total": 15.033109562461654
+  },
+  "objetivos_guia": {
+    "log_loss": 0.66,
+    "brier": 0.215,
+    "ece": 0.02,
+    "mae_margin": 10.5,
+    "mae_total": 14.0
+  },
+  "ece_suelo_de_ruido": {
+    "n": 1231,
+    "media": 0.028631163674276802,
+    "p95": 0.041506109942120874
+  },
+  "lesiones": {
+    "juegos_con_baja_pct": 63.11941510966693,
+    "impacto_medio_pts": 2.3858663934089073
+  }
+}

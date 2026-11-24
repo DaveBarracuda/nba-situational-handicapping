@@ -1,0 +1,51 @@
+{
+ "pesos": [
+  1.0,
+  0.5,
+  0.0
+ ],
+ "temporadas": [
+  "2023-24",
+  "2024-25",
+  "2025-26"
+ ],
+ "arranque_hasta": 10,
+ "resultados": {
+  "1.0": {
+   "n_total": 3693,
+   "n_arranque": 466,
+   "todo_log_loss": 0.6035747360037204,
+   "todo_mae_spread": 11.143351848546569,
+   "todo_mae_total": 14.889756198094563,
+   "arranque_log_loss": 0.6139221804335308,
+   "arranque_brier": 0.2135594940819649,
+   "arranque_mae_spread": 10.304251004426083,
+   "arranque_mae_total": 14.521891820668559,
+   "arranque_se_mae": 0.37360229829488056
+  },
+  "0.5": {
+   "n_total": 3693,
+   "n_arranque": 466,
+   "todo_log_loss": 0.6036853779751856,
+   "todo_mae_spread": 11.142676210382456,
+   "todo_mae_total": 14.891882506825585,
+   "arranque_log_loss": 0.6140406104625568,
+   "arranque_brier": 0.2136666369956611,
+   "arranque_mae_spread": 10.301631659771633,
+   "arranque_mae_total": 14.53707936521819,
+   "arranque_se_mae": 0.37383552591908775
+  },
+  "0.0": {
+   "n_total": 3693,
+   "n_arranque": 466,
+   "todo_log_loss": 0.6032695922013914,
+   "todo_mae_spread": 11.143336958757047,
+   "todo_mae_total": 14.913525852837624,
+   "arranque_log_loss": 0.6129465396265835,
+   "arranque_brier": 0.2131280763704794,
+   "arranque_mae_spread": 10.304074755544676,
+   "arranque_mae_total": 14.709617362128284,
+   "arranque_se_mae": 0.3746487013763124
+  }
+ }
+}

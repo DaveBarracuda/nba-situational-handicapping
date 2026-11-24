@@ -1,0 +1,61 @@
+# --- data cruda de terceros -------------------------------------------
+# Los volcados de hoopR (box scores y play-by-play de ESPN) son 109 MB y no
+# son fuente de este proyecto: se redescargan con `ingest/hoopr_source.py` y
+# `ingest/pbp_source.py`, que los cachean aquí. Publicarlos sería republicar
+# el dataset de otro, y encima pasarse de tamaño.
+data/raw/hoopr/
+
+# Lo que sí entra de data/raw:
+#   - real_5seasons_*/   el snapshot limpio (1 MB): hace el repo autocontenido
+#   - officials/         asignaciones arbitrales (52 KB): reconstruirlo cuesta
+#                        ~50 min de peticiones a ESPN
+# Los snapshots intermedios no, que son ruido de desarrollo:
+data/raw/real_enriched_*/
+data/raw/real_full_*/
+data/raw/real_referees_*/
+data/raw/real_shots_*/
+data/raw/real_4seasons*/
+data/raw/espn_real_*/
+data/raw/*.parquet
+
+# --- documento de procedencia desconocida ------------------------------
+# La guía estaba en la carpeta al empezar el proyecto y no lleva autoría. No
+# se publica por si acaso: si es tuya, borra esta línea y añádela.
+guia_nba_situational_handicapping.md
+
+# --- secretos ----------------------------------------------------------
+# La clave de The Odds API se lee de la variable de entorno ODDS_API_KEY y no
+# debe estar en ningún fichero. Esto es un cinturón por si acaso.
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+credentials.json
+
+# --- Python ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# --- herramientas ------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# --- editores y sistema ------------------------------------------------
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini

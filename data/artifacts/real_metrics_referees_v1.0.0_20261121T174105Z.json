@@ -1,0 +1,39 @@
+{
+ "datos": {
+  "juegos": 3692,
+  "posesiones": "exactas (box score)",
+  "ausencias": 13514,
+  "perfil_de_tiro": "si (efg, 3PA rate, FT rate, pintura, faltas)",
+  "arbitros": "si (3662/3692 juegos con cuadro, 3469 cuadros con perfil)",
+  "snapshot": "real_referees_20261121T172324Z"
+ },
+ "ajuste_arbitral": {
+  "media": -0.03932989540882471,
+  "sd": 1.2752691270289567,
+  "coeficiente": 0.9,
+  "centro_tl": 46.1
+ },
+ "walk_forward_2024_25": {
+  "log_loss": 0.5985093994760813,
+  "brier": 0.20638891888302663,
+  "ece": 0.038603406835588605,
+  "mae_margin": 10.894067337373247,
+  "mae_total": 14.714595215414157
+ },
+ "split_unico_2024_25": {
+  "log_loss": 0.5972736750200092,
+  "brier": 0.20592948591659133,
+  "ece": 0.03895006719349929,
+  "mae_margin": 10.891004221560815,
+  "mae_total": 14.739655803925421
+ },
+ "totales": {
+  "sd_predicho": 6.773442238778563,
+  "corr_con_real": 0.39330315698406415,
+  "mae_baseline_ciego": 15.83691418789493
+ },
+ "spread": {
+  "corr_con_real": 0.47934832674863187,
+  "mae_baseline_ciego": 12.61005990775348
+ }
+}
