@@ -16,5 +16,8 @@ matplotlib>=3.8
 seaborn>=0.13
 
 # Desarrollo y tests
+# ruff está aquí porque el README documenta `python -m ruff check nba_sh tests`
+# como paso de verificación: listar pytest y no ruff dejaba el CI sin lint.
 pytest>=8.0
 pytest-cov>=4.1
+ruff>=0.3
