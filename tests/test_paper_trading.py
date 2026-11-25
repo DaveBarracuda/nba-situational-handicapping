@@ -786,3 +786,106 @@ def test_resettling_picks_up_a_closing_line_that_arrived_late(tmp_path: Path) ->
     settled = ledger.settled()
     assert len(settled) == 1  # no se duplica
     assert settled.loc[0, "clv_points"] > 0
+
+
+@pytest.mark.unit
+def test_a_close_capture_too_far_from_tipoff_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Un cron tardío cae en la jornada siguiente y guardaría su apertura.
+
+    Pasó en producción: el cron de las 23:30 se disparó a las 05:37 y capturó
+    la jornada del día siguiente, a 18 h de su tipoff, etiquetada como cierre.
+    La guarda del tipoff no lo veía porque esos partidos no habían empezado.
+    """
+    from nba_sh.paper import session
+    from nba_sh.schemas import TIMING_CLOSE
+
+    now = pd.Timestamp.utcnow().tz_localize(None)
+    far = pd.DataFrame(
+        [
+            {
+                "game_id": "lejano",
+                "game_date": pd.Timestamp("2026-11-25"),
+                "tipoff_utc": now + pd.Timedelta(hours=18),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    monkeypatch.setattr(session, "fetch_slate", lambda *a, **k: far)
+    monkeypatch.setattr(
+        session, "payload_to_odds", lambda *a, **k: _odds(game_id="lejano")
+    )
+    monkeypatch.setattr(session, "fetch_odds_payload", lambda *a, **k: [])
+    result = session.capture_odds(
+        timing=TIMING_CLOSE, season=SEASON, ledger=PaperLedger(root=tmp_path)
+    )
+    assert result.n_games == 0
+    assert PaperLedger(root=tmp_path).odds(timing=TIMING_CLOSE).empty
+
+
+@pytest.mark.unit
+def test_a_close_capture_near_tipoff_is_kept(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A media hora del tipoff sí es un cierre: la guarda no estorba."""
+    from nba_sh.paper import session
+    from nba_sh.schemas import TIMING_CLOSE
+
+    now = pd.Timestamp.utcnow().tz_localize(None)
+    soon = pd.DataFrame(
+        [
+            {
+                "game_id": "pronto",
+                "game_date": pd.Timestamp("2026-11-25"),
+                "tipoff_utc": now + pd.Timedelta(minutes=30),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    monkeypatch.setattr(session, "fetch_slate", lambda *a, **k: soon)
+    monkeypatch.setattr(
+        session, "payload_to_odds", lambda *a, **k: _odds(game_id="pronto")
+    )
+    monkeypatch.setattr(session, "fetch_odds_payload", lambda *a, **k: [])
+    result = session.capture_odds(
+        timing=TIMING_CLOSE, season=SEASON, ledger=PaperLedger(root=tmp_path)
+    )
+    assert result.n_games == 1
+
+
+@pytest.mark.unit
+def test_betting_without_captures_names_the_available_timings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """El error dice qué timings hay, que es lo que faltaba para diagnosticar.
+
+    El workflow capturaba con `open` y apostaba con el defecto `t_minus_60`;
+    el mensaje viejo no daba ninguna pista de la discrepancia.
+    """
+    from nba_sh.paper import session
+    from nba_sh.schemas import TIMING_PREGAME
+
+    ledger = PaperLedger(root=tmp_path)
+    ledger.write_odds(_odds(), timing=TIMING_OPEN)
+    slate = pd.DataFrame(
+        [
+            {
+                "game_id": GAME,
+                "game_date": pd.Timestamp("2026-11-25"),
+                "tipoff_utc": pd.Timestamp("2026-11-26T00:00"),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    monkeypatch.setattr(session, "fetch_slate", lambda *a, **k: slate)
+    with pytest.raises(ValueError, match="Hay capturas de: open"):
+        session.place_bets(
+            season=SEASON,
+            day=pd.Timestamp("2026-11-25"),
+            timing=TIMING_PREGAME,
+            ledger=ledger,
+        )

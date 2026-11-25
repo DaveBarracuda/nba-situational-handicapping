@@ -49,6 +49,10 @@ from nba_sh.storage import Storage
 LOGGER = logging.getLogger(__name__)
 
 DEFAULT_SNAPSHOT_GLOB = "real_*"
+# Más allá de esto, una captura no es un cierre: delata un cron tardío que
+# cayó en la jornada siguiente. T-30 de la guía son 0,5 h; 6 da margen a un
+# retraso razonable sin tragarse una jornada entera equivocada.
+MAX_HOURS_BEFORE_CLOSE = 6.0
 MARKET_TIMEZONE = "America/New_York"
 
 
@@ -150,6 +154,24 @@ def capture_odds(
     # Se descartan esos partidos y se dice cuántos.
     if timing == TIMING_CLOSE and not slate.empty:
         now = pd.Timestamp.utcnow().tz_localize(None)
+        # Y el extremo contrario, que también muerde: un cron que se dispara
+        # horas tarde cae en la jornada del día siguiente y guardaría su línea
+        # de apertura etiquetada como cierre. Pasó, con una captura a 18 h del
+        # tipoff. Se mide contra el primer partido, no contra cada uno, porque
+        # lo que delata el error es la jornada entera, no un partido tardío.
+        hours_to_first = (
+            pd.to_datetime(slate["tipoff_utc"]).min() - now
+        ).total_seconds() / 3600.0
+        if hours_to_first > MAX_HOURS_BEFORE_CLOSE:
+            LOGGER.error(
+                "paper: faltan %.1f h para el primer tipoff del %s; a esa "
+                "distancia no es un cierre (máximo %.0f h). No se guarda nada: "
+                "mira si el cron se disparó tarde y cayó en otra jornada.",
+                hours_to_first,
+                target.date(),
+                MAX_HOURS_BEFORE_CLOSE,
+            )
+            slate = slate.iloc[0:0]
         started = pd.to_datetime(slate["tipoff_utc"]) <= now
         if started.any():
             LOGGER.warning(
@@ -293,9 +315,25 @@ def place_bets(
             lines["game_id"].astype(str).isin(set(slate["game_id"].astype(str)))
         ]
     if lines.empty:
+        # Decir qué timings SÍ tienen captura: el fallo real fue capturar con
+        # `open` y apostar con el defecto `t_minus_60`, y el mensaje viejo no
+        # daba ninguna pista de eso.
+        available = sorted(
+            {
+                str(value)
+                for value in book.odds()["timing"].dropna().unique()
+                if str(value)
+            }
+        )
+        hint = (
+            f" Hay capturas de: {', '.join(available)}; usa `--timing` con una "
+            "de ellas."
+            if available
+            else " El libro no tiene ninguna captura: corre `paper capture`."
+        )
         raise ValueError(
             f"no hay cuotas capturadas con timing {timing!r} para el "
-            f"{target.date()}: corre primero `paper capture`"
+            f"{target.date()}.{hint}"
         )
     snapshot = str(lines["captured_at"].max())
 

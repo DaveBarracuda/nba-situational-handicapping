@@ -93,7 +93,10 @@ jobs:
             exit 1
           fi
           python -m nba_sh paper capture --season "$SEASON" --timing open --book draftkings
-          python -m nba_sh paper bet --season "$SEASON" --sims 6000
+          # --timing open es obligatorio: `paper bet` por defecto busca
+          # capturas de t_minus_60 y este paso guarda las de open, así que sin
+          # el flag falla con "no hay cuotas capturadas". Pasó.
+          python -m nba_sh paper bet --season "$SEASON" --timing open --sims 6000
 
       - name: Cierre
         if: steps.step.outputs.name == 'close'
