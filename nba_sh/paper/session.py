@@ -53,6 +53,8 @@ DEFAULT_SNAPSHOT_GLOB = "real_*"
 # cayó en la jornada siguiente. T-30 de la guía son 0,5 h; 6 da margen a un
 # retraso razonable sin tragarse una jornada entera equivocada.
 MAX_HOURS_BEFORE_CLOSE = 6.0
+# Días que se mira hacia delante cuando la jornada de hoy ya se jugó.
+SLATE_LOOKAHEAD_DAYS = 2
 MARKET_TIMEZONE = "America/New_York"
 
 
@@ -92,6 +94,43 @@ class SettleResult:
 def market_today() -> pd.Timestamp:
     """La fecha de hoy en hora del mercado (ET), sin zona."""
     return pd.Timestamp.now(tz=MARKET_TIMEZONE).normalize().tz_localize(None)
+
+
+def resolve_slate(
+    *, season: str, day: pd.Timestamp | None, allow_roll_forward: bool
+) -> tuple[pd.Timestamp, pd.DataFrame]:
+    """Jornada a usar, avanzando al día siguiente si la de hoy ya se jugó.
+
+    El cron de GitHub se retrasa horas, y entonces "hoy en hora del mercado"
+    es una jornada ya disputada: el paso moría con "no hay jornada el ...".
+    Pasó dos veces. Avanzar lo resuelve sin mentir sobre qué día es, porque
+    deja dicho en el log cuál eligió.
+
+    No se avanza nunca para el cierre —sería capturar una línea a un día del
+    tipoff, que es el otro error ya visto— ni cuando quien llama pide un día
+    concreto: si dices el 26, es el 26.
+
+    Returns:
+        ``(fecha, jornada)``; la jornada va vacía si no hay partidos sin jugar
+        en la ventana mirada.
+    """
+    start = pd.Timestamp(day) if day is not None else market_today()
+    span = SLATE_LOOKAHEAD_DAYS if allow_roll_forward else 0
+    empty = None
+    for offset in range(span + 1):
+        candidate = start + pd.Timedelta(days=offset)
+        slate = fetch_slate(candidate, season=season)
+        if not slate.empty:
+            if offset:
+                LOGGER.info(
+                    "paper: la jornada del %s ya se jugó; se usa la del %s",
+                    start.date(),
+                    candidate.date(),
+                )
+            return candidate, slate
+        if empty is None:
+            empty = slate
+    return start, empty if empty is not None else fetch_slate(start, season=season)
 
 
 def load_history(*, storage: Storage | None = None, config: Config = CONFIG) -> Dataset:
@@ -146,8 +185,11 @@ def capture_odds(
         :class:`CaptureResult` con la ruta escrita.
     """
     book = ledger or PaperLedger()
-    target = pd.Timestamp(day) if day is not None else market_today()
-    slate = fetch_slate(target, season=season)
+    target, slate = resolve_slate(
+        season=season,
+        day=day,
+        allow_roll_forward=day is None and timing != TIMING_CLOSE,
+    )
 
     # Una línea capturada después del tipoff no es el cierre, es una línea en
     # vivo: etiquetarla como cierre envenenaría la CLV sin que nada fallara.
@@ -304,10 +346,14 @@ def place_bets(
         ValueError: si no hay jornada o no hay cuotas capturadas.
     """
     book = ledger or PaperLedger()
-    target = pd.Timestamp(day) if day is not None else market_today()
-    slate = fetch_slate(target, season=season)
+    target, slate = resolve_slate(
+        season=season, day=day, allow_roll_forward=day is None
+    )
     if slate.empty:
-        raise ValueError(f"no hay jornada el {target.date()}")
+        raise ValueError(
+            f"no hay jornada sin jugar el {target.date()} ni en los "
+            f"{SLATE_LOOKAHEAD_DAYS} días siguientes"
+        )
 
     lines = book.latest_odds(timing=timing)
     if not lines.empty:
@@ -450,6 +496,7 @@ __all__ = [
     "reconstruct_close",
     "load_history",
     "market_today",
+    "resolve_slate",
     "place_bets",
     "settle",
 ]

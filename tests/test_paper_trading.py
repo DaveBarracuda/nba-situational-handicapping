@@ -889,3 +889,87 @@ def test_betting_without_captures_names_the_available_timings(
             timing=TIMING_PREGAME,
             ledger=ledger,
         )
+
+
+@pytest.mark.unit
+def test_an_already_played_slate_rolls_forward(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Un cron tardío cae en una jornada ya jugada: se avanza al día siguiente.
+
+    Pasó dos veces en producción, con "no hay jornada el 2026-11-26" a las
+    00:19 y a las 04:08 UTC del 27, cuando en hora del mercado seguía siendo
+    el 26 y sus partidos estaban disputados.
+    """
+    from nba_sh.paper import session
+
+    today, tomorrow = pd.Timestamp("2026-11-26"), pd.Timestamp("2026-11-27")
+    slate = pd.DataFrame(
+        [
+            {
+                "game_id": GAME,
+                "game_date": tomorrow,
+                "tipoff_utc": pd.Timestamp("2026-11-28T00:00"),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    asked: list[pd.Timestamp] = []
+
+    def fake_slate(day: pd.Timestamp, **kwargs: object) -> pd.DataFrame:
+        asked.append(pd.Timestamp(day))
+        return slate if pd.Timestamp(day) == tomorrow else slate.iloc[0:0]
+
+    monkeypatch.setattr(session, "fetch_slate", fake_slate)
+    monkeypatch.setattr(session, "market_today", lambda: today)
+
+    chosen, resolved = session.resolve_slate(
+        season=SEASON, day=None, allow_roll_forward=True
+    )
+    assert chosen == tomorrow
+    assert len(resolved) == 1
+    assert asked[:2] == [today, tomorrow]
+
+
+@pytest.mark.unit
+def test_an_explicit_day_is_respected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Si pides un día concreto, no se avanza: si dices el 26, es el 26."""
+    from nba_sh.paper import session
+
+    asked: list[pd.Timestamp] = []
+
+    def fake_slate(day: pd.Timestamp, **kwargs: object) -> pd.DataFrame:
+        asked.append(pd.Timestamp(day))
+        return pd.DataFrame(columns=["game_id", "game_date", "tipoff_utc"])
+
+    monkeypatch.setattr(session, "fetch_slate", fake_slate)
+    chosen, resolved = session.resolve_slate(
+        season=SEASON, day=pd.Timestamp("2026-11-26"), allow_roll_forward=False
+    )
+    assert chosen == pd.Timestamp("2026-11-26")
+    assert resolved.empty
+    assert set(asked) == {pd.Timestamp("2026-11-26")}
+
+
+@pytest.mark.unit
+def test_the_close_never_rolls_forward(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Avanzar el cierre sería capturar una línea a un día del tipoff."""
+    from nba_sh.paper import session
+    from nba_sh.schemas import TIMING_CLOSE
+
+    today = pd.Timestamp("2026-11-26")
+    asked: list[pd.Timestamp] = []
+
+    def fake_slate(day: pd.Timestamp, **kwargs: object) -> pd.DataFrame:
+        asked.append(pd.Timestamp(day))
+        return pd.DataFrame(columns=["game_id", "game_date", "tipoff_utc"])
+
+    monkeypatch.setattr(session, "fetch_slate", fake_slate)
+    monkeypatch.setattr(session, "market_today", lambda: today)
+    monkeypatch.setattr(session, "payload_to_odds", lambda *a, **k: _odds())
+    monkeypatch.setattr(session, "fetch_odds_payload", lambda *a, **k: [])
+    session.capture_odds(
+        timing=TIMING_CLOSE, season=SEASON, ledger=PaperLedger(root=tmp_path)
+    )
+    assert set(asked) == {today}
