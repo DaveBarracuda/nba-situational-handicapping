@@ -973,3 +973,79 @@ def test_the_close_never_rolls_forward(
         timing=TIMING_CLOSE, season=SEASON, ledger=PaperLedger(root=tmp_path)
     )
     assert set(asked) == {today}
+
+
+@pytest.mark.unit
+def test_a_slate_is_not_bet_twice(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Una jornada, un registro.
+
+    Pasó en producción: la del 27 de noviembre se apostó a mano a las 04:24 y
+    otra vez por el cron a las 23:56, dejando tres `bet_id` repetidos a líneas
+    distintas. Liquidarlo así cuenta dos veces las mismas apuestas.
+    """
+    from nba_sh.paper import session
+
+    day = pd.Timestamp("2026-11-28")
+    slate = pd.DataFrame(
+        [
+            {
+                "game_id": GAME,
+                "game_date": day,
+                "tipoff_utc": pd.Timestamp("2026-11-29T00:00"),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    monkeypatch.setattr(session, "fetch_slate", lambda *a, **k: slate)
+    ledger = PaperLedger(root=tmp_path)
+    ledger.write_odds(_odds(), timing=TIMING_OPEN)
+    ledger.write_bets(
+        pd.DataFrame([{"bet_id": "ya", "game_id": GAME, "game_date": day}]),
+        odds_snapshot="snap",
+    )
+    with pytest.raises(ValueError, match="ya tiene 1 apuestas"):
+        session.place_bets(
+            season=SEASON, day=day, timing=TIMING_OPEN, ledger=ledger
+        )
+
+
+@pytest.mark.unit
+def test_allow_rebet_is_the_explicit_escape(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Rehacer a mano es posible, pero hay que pedirlo."""
+    from nba_sh.paper import session
+
+    day = pd.Timestamp("2026-11-28")
+    slate = pd.DataFrame(
+        [
+            {
+                "game_id": GAME,
+                "game_date": day,
+                "tipoff_utc": pd.Timestamp("2026-11-29T00:00"),
+                "home_team": HOME,
+                "away_team": AWAY,
+            }
+        ]
+    )
+    monkeypatch.setattr(session, "fetch_slate", lambda *a, **k: slate)
+    ledger = PaperLedger(root=tmp_path)
+    ledger.write_odds(_odds(), timing=TIMING_OPEN)
+    ledger.write_bets(
+        pd.DataFrame([{"bet_id": "ya", "game_id": GAME, "game_date": day}]),
+        odds_snapshot="snap",
+    )
+    # Pasa la guarda y falla más adelante, al no haber histórico que cargar:
+    # lo que se comprueba aquí es que la guarda ya no es lo que lo detiene.
+    with pytest.raises((FileNotFoundError, ValueError)) as caught:
+        session.place_bets(
+            season=SEASON,
+            day=day,
+            timing=TIMING_OPEN,
+            ledger=ledger,
+            allow_rebet=True,
+        )
+    assert "ya tiene" not in str(caught.value)

@@ -336,14 +336,31 @@ def place_bets(
     history: Dataset | None = None,
     ledger: PaperLedger | None = None,
     config: Config = CONFIG,
+    allow_rebet: bool = False,
 ) -> BetResult:
     """Corre el modelo sobre la jornada y registra las apuestas de papel.
 
     Usa la última captura de cuotas del ``timing`` pedido: esa es la línea que
     se "toma", y contra ella se medirá la CLV cuando llegue el cierre.
 
+    Una jornada se apuesta **una vez**. Registrarla dos veces duplica las
+    mismas apuestas a líneas distintas y el record y la CLV salen mal: pasó
+    con la del 27 de noviembre, apostada a mano a las 04:24 y otra vez por el
+    cron a las 23:56, con tres ``bet_id`` repetidos.
+
+    Args:
+        season: temporada de la que traer el calendario.
+        day: jornada; por defecto, la siguiente con partidos sin jugar.
+        timing: timing de la captura que se usa como línea tomada.
+        history: dataset histórico ya cargado.
+        ledger: libro destino.
+        config: configuración del modelo.
+        allow_rebet: permite registrar sobre una jornada que ya tiene
+            apuestas. Para rehacer algo a mano, nunca en automático.
+
     Raises:
-        ValueError: si no hay jornada o no hay cuotas capturadas.
+        ValueError: si no hay jornada, no hay cuotas capturadas, o la jornada
+            ya tiene apuestas y no se pide ``allow_rebet``.
     """
     book = ledger or PaperLedger()
     target, slate = resolve_slate(
@@ -354,6 +371,19 @@ def place_bets(
             f"no hay jornada sin jugar el {target.date()} ni en los "
             f"{SLATE_LOOKAHEAD_DAYS} días siguientes"
         )
+
+    # Una jornada, un registro. Sin esto un cron que coincide con una corrida
+    # manual duplica las mismas apuestas a líneas distintas.
+    if not allow_rebet:
+        placed = book.bets()
+        if not placed.empty:
+            same_day = pd.to_datetime(placed["game_date"]) == target
+            if same_day.any():
+                raise ValueError(
+                    f"la jornada del {target.date()} ya tiene "
+                    f"{int(same_day.sum())} apuestas registradas; no se "
+                    "duplica. Usa allow_rebet si de verdad quieres rehacerla."
+                )
 
     lines = book.latest_odds(timing=timing)
     if not lines.empty:

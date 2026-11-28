@@ -337,6 +337,7 @@ def command_paper_bet(args: argparse.Namespace) -> int:
         day=pd.Timestamp(args.day) if args.day else None,
         timing=args.timing,
         config=config,
+        allow_rebet=args.allow_rebet,
     )
     LOGGER.info(
         "jornada %s: %d apuestas de papel de %d oportunidades (bankroll %.2f)",
@@ -562,6 +563,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--sims", type=int, default=None, help="simulaciones Monte Carlo por juego"
     )
     bet.add_argument("--seed", type=int, default=None, help="semilla")
+    bet.add_argument(
+        "--allow-rebet",
+        action="store_true",
+        help="registrar aunque la jornada ya tenga apuestas (rehacer a mano)",
+    )
     bet.set_defaults(handler=command_paper_bet)
 
     settle_cmd = paper_subs.add_parser("settle", help="liquidar y calcular CLV")
